@@ -1,0 +1,204 @@
+<main class="contenedor">
+  <header class="encabezado">
+    <h1>{{ titulo }}</h1>
+    <p>Registra participantes, elige sus preferencias y administra las inscripciones.</p>
+  </header>
+
+  <!-- Formulario -->
+  <section class="tarjeta">
+    <h2>Nueva inscripción</h2>
+
+    <form #inscripcionForm="ngForm" (ngSubmit)="registrar(inscripcionForm)" novalidate>
+      <div class="grid">
+        <!-- Nombre -->
+        <div class="campo">
+          <label for="nombre">Nombre completo</label>
+          <input
+            id="nombre"
+            name="nombre"
+            type="text"
+            placeholder="Ej: María Pérez"
+            [(ngModel)]="inscripcion.nombre"
+            #nombre="ngModel"
+            required
+            minlength="3"
+            [class.invalido]="nombre.invalid && (nombre.dirty || nombre.touched)"
+            [class.valido]="nombre.valid && nombre.touched"
+          />
+          <div class="error" *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)">
+            <span *ngIf="nombre.errors?.['required']">El nombre es obligatorio.</span>
+            <span *ngIf="nombre.errors?.['minlength']">Debe tener al menos 3 caracteres.</span>
+          </div>
+        </div>
+
+        <!-- Correo institucional -->
+        <div class="campo">
+          <label for="correo">Correo institucional</label>
+          <input
+            id="correo"
+            name="correo"
+            type="email"
+            placeholder="usuario@instituto.edu.pe"
+            [(ngModel)]="inscripcion.correo"
+            #correo="ngModel"
+            required
+            email
+            pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
+            [class.invalido]="correo.invalid && (correo.dirty || correo.touched)"
+            [class.valido]="correo.valid && correo.touched"
+          />
+          <div class="error" *ngIf="correo.invalid && (correo.dirty || correo.touched)">
+            <span *ngIf="correo.errors?.['required']">El correo es obligatorio.</span>
+            <span *ngIf="!correo.errors?.['required']">Ingresa un correo con formato válido.</span>
+          </div>
+        </div>
+
+        <!-- Especialidad -->
+        <div class="campo">
+          <label for="especialidad">Especialidad</label>
+          <select
+            id="especialidad"
+            name="especialidad"
+            [(ngModel)]="inscripcion.especialidad"
+            #especialidad="ngModel"
+            required
+            [class.invalido]="especialidad.invalid && (especialidad.dirty || especialidad.touched)"
+            [class.valido]="especialidad.valid && especialidad.touched"
+          >
+            <option value="" disabled>Selecciona una especialidad</option>
+            <option *ngFor="let e of especialidades" [value]="e">{{ e }}</option>
+          </select>
+          <div class="error" *ngIf="especialidad.invalid && (especialidad.dirty || especialidad.touched)">
+            <span>Selecciona una especialidad.</span>
+          </div>
+        </div>
+
+        <!-- Modalidad -->
+        <div class="campo">
+          <label for="modalidad">Modalidad</label>
+          <select
+            id="modalidad"
+            name="modalidad"
+            [(ngModel)]="inscripcion.modalidad"
+            #modalidad="ngModel"
+            required
+            [class.invalido]="modalidad.invalid && (modalidad.dirty || modalidad.touched)"
+            [class.valido]="modalidad.valid && modalidad.touched"
+          >
+            <option value="" disabled>Selecciona una modalidad</option>
+            <option *ngFor="let m of modalidades" [value]="m">{{ m }}</option>
+          </select>
+          <div class="error" *ngIf="modalidad.invalid && (modalidad.dirty || modalidad.touched)">
+            <span>Selecciona una modalidad.</span>
+          </div>
+        </div>
+
+        <!-- Nivel de experiencia -->
+        <div class="campo">
+          <label for="nivel">Nivel de experiencia</label>
+          <select
+            id="nivel"
+            name="nivel"
+            [(ngModel)]="inscripcion.nivel"
+            #nivel="ngModel"
+            required
+            [class.invalido]="nivel.invalid && (nivel.dirty || nivel.touched)"
+            [class.valido]="nivel.valid && nivel.touched"
+          >
+            <option value="" disabled>Selecciona un nivel</option>
+            <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
+          </select>
+          <div class="error" *ngIf="nivel.invalid && (nivel.dirty || nivel.touched)">
+            <span>Selecciona un nivel de experiencia.</span>
+          </div>
+        </div>
+
+        <!-- Turno (radio buttons) -->
+        <div class="campo">
+          <span class="etiqueta-grupo">Turno</span>
+          <div class="radios">
+            <label class="radio" *ngFor="let t of turnos">
+              <input
+                type="radio"
+                name="turno"
+                [value]="t"
+                [(ngModel)]="inscripcion.turno"
+                #turno="ngModel"
+                required
+              />
+              <span>{{ t }}</span>
+            </label>
+          </div>
+          <div class="error" *ngIf="inscripcionForm.controls['turno']?.invalid && inscripcionForm.controls['turno']?.touched">
+            <span>Selecciona un turno.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exito" *ngIf="mensajeExito" role="status">{{ mensajeExito }}</div>
+
+      <div class="acciones">
+        <button type="submit" class="btn primario" [disabled]="inscripcionForm.invalid">Inscribir</button>
+        <button type="button" class="btn secundario" (click)="limpiar(inscripcionForm)">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Resumen -->
+  <section class="resumen">
+    <div class="indicador total">
+      <span class="valor">{{ totalInscritos }}</span>
+      <span class="texto">Total de inscritos</span>
+    </div>
+    <div class="indicador manana">
+      <span class="valor">{{ totalManana }}</span>
+      <span class="texto">Turno mañana</span>
+    </div>
+    <div class="indicador noche">
+      <span class="valor">{{ totalNoche }}</span>
+      <span class="texto">Turno noche</span>
+    </div>
+  </section>
+
+  <!-- Tabla -->
+  <section class="tarjeta">
+    <h2>Inscripciones registradas</h2>
+
+    <p class="vacio" *ngIf="inscripciones.length === 0">Todavía no hay participantes registrados.</p>
+
+    <div class="tabla-wrapper" *ngIf="inscripciones.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>N.° inscripción</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Especialidad</th>
+            <th>Turno</th>
+            <th>Modalidad</th>
+            <th>Nivel</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let i of inscripciones; trackBy: trackByNumero">
+            <td class="numero">{{ i.numero }}</td>
+            <td>{{ i.nombre }}</td>
+            <td>{{ i.correo }}</td>
+            <td>
+              <span class="etiqueta" [ngClass]="claseEspecialidad(i.especialidad)">{{ i.especialidad }}</span>
+            </td>
+            <td>
+              <span class="etiqueta" [ngClass]="i.turno === 'Mañana' ? 'turno-manana' : 'turno-noche'">{{ i.turno }}</span>
+            </td>
+            <td>{{ i.modalidad }}</td>
+            <td>{{ i.nivel }}</td>
+            <td>
+              <button type="button" class="btn-eliminar" (click)="eliminar(i.numero)" aria-label="Eliminar inscripción">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
