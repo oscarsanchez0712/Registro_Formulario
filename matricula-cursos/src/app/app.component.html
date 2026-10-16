@@ -1,0 +1,85 @@
+<main class="contenedor">
+  <header class="cabecera">
+    <h1>Sistema de Matrícula e Inscripción a Cursos Online</h1>
+    <p>Sánchez Arias, Oscar Heyton</p>
+  </header>
+
+  <section class="tarjeta">
+    <h2>Nueva matrícula</h2>
+
+    <form [formGroup]="miFormulario" (ngSubmit)="guardar()" novalidate>
+      <div class="campo">
+        <label for="estudiante">Nombre Estudiante</label>
+        <input id="estudiante" type="text" formControlName="estudiante" placeholder="Ej. Juan Pérez" />
+        <div class="error" *ngIf="mostrarError('estudiante')">
+          <span *ngIf="miFormulario.get('estudiante')?.hasError('required')">El nombre del estudiante es obligatorio.</span>
+          <span *ngIf="miFormulario.get('estudiante')?.hasError('minlength')">
+            Mínimo 6 caracteres (actual: {{ miFormulario.get('estudiante')?.value?.length }}).
+          </span>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="curso">Nombre del Curso</label>
+        <input id="curso" type="text" formControlName="curso" placeholder="Ej. Angular desde cero" />
+        <div class="error" *ngIf="mostrarError('curso')">
+          <span>El nombre del curso es obligatorio.</span>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="nivel">Nivel</label>
+        <select id="nivel" formControlName="nivel">
+          <option value="" disabled>Seleccione un nivel</option>
+          <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
+        </select>
+        <div class="error" *ngIf="mostrarError('nivel')">
+          <span>Debe seleccionar un nivel.</span>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="horas">Horas Semanales</label>
+        <input id="horas" type="number" formControlName="horas" placeholder="Entre 2 y 20" />
+        <div class="error" *ngIf="mostrarError('horas')">
+          <span *ngIf="miFormulario.get('horas')?.hasError('required')">Las horas semanales son obligatorias.</span>
+          <span *ngIf="miFormulario.get('horas')?.hasError('min')">El mínimo permitido es 2 horas.</span>
+          <span *ngIf="miFormulario.get('horas')?.hasError('max')">El máximo permitido es 20 horas.</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primario" [disabled]="miFormulario.invalid">Registrar matrícula</button>
+    </form>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Alumnos matriculados ({{ matriculas.length }})</h2>
+
+    <p class="vacio" *ngIf="matriculas.length === 0">Aún no hay matrículas registradas.</p>
+
+    <table *ngIf="matriculas.length > 0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Estudiante</th>
+          <th>Curso</th>
+          <th>Nivel</th>
+          <th>Horas/sem</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let m of matriculas; let i = index; trackBy: trackById">
+          <td>{{ i + 1 }}</td>
+          <td>{{ m.estudiante }}</td>
+          <td>{{ m.curso }}</td>
+          <td>{{ m.nivel }}</td>
+          <td>{{ m.horas }}</td>
+          <td>
+            <button type="button" class="btn-peligro" (click)="anular(m.id)">Anular inscripción</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
