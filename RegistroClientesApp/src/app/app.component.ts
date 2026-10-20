@@ -1,108 +1,127 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 
+export type Turno = 'Mañana' | 'Noche';
+
 export interface Inscripcion {
   numero: number;
   nombre: string;
-  correo: string;
-  especialidad: string;
-  turno: string;
-  modalidad: string;
-  nivel: string;
+  codigo: string;
+  email: string;
+  semestre: number;
+  curso: string;
+  turno: Turno;
 }
 
 @Component({
   selector: 'app-root',
-  standalone: false,
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrls: ['./app.component.css'],
+  standalone: false
 })
 export class AppComponent {
-  titulo = 'Inscripción a Talleres Tecnológicos';
+  titulo = 'Sistema de Inscripción a Cursos';
+  autor = 'Sánchez Arias, Oscar Hoyton';
 
-  especialidades: string[] = ['Desarrollo', 'Redes', 'Inteligencia Artificial'];
-  turnos: string[] = ['Mañana', 'Noche'];
-  modalidades: string[] = ['Presencial', 'Virtual'];
-  niveles: string[] = ['Principiante', 'Intermedio', 'Avanzado'];
+  /** Código de estudiante: EST- seguido de exactamente 6 dígitos (EST-XXXXXX). */
+  readonly patronCodigo = '^EST-[0-9]{6}$';
 
-  // Modelo enlazado con ngModel
-  inscripcion = {
-    nombre: '',
-    correo: '',
-    especialidad: '',
-    turno: '',
-    modalidad: '',
-    nivel: '',
-  };
+  /** Email: usuario@dominio.ext con dominio válido y extensión de al menos 2 letras. */
+  readonly patronEmail = '^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9\\-]+(\\.[A-Za-z0-9\\-]+)*\\.[A-Za-z]{2,}$';
 
-  // Los datos viven solo en memoria
+  /** Semestre: número entero entre 1 y 10. */
+  readonly patronSemestre = '^[0-9]+$';
+  readonly semestreMin = 1;
+  readonly semestreMax = 10;
+
+  readonly cursos: string[] = [
+    'Angular Básico',
+    'Spring Boot',
+    'Bases de Datos con SQL Server',
+    'Docker y Contenedores',
+    'Python con Flask'
+  ];
+
+  readonly turnos: Turno[] = ['Mañana', 'Noche'];
+
   inscripciones: Inscripcion[] = [];
+  private contador = 0;
 
   mensajeExito = '';
+  mensajeError = '';
 
-  private siguienteNumero = 1;
+  modelo = this.nuevoModelo();
 
-  get totalInscritos(): number {
+  private nuevoModelo() {
+    return {
+      nombre: '',
+      codigo: '',
+      email: '',
+      semestre: null as number | null,
+      curso: '',
+      turno: '' as Turno | ''
+    };
+  }
+
+  get total(): number {
     return this.inscripciones.length;
   }
 
   get totalManana(): number {
-    return this.inscripciones.filter((i) => i.turno === 'Mañana').length;
+    return this.inscripciones.filter(i => i.turno === 'Mañana').length;
   }
 
   get totalNoche(): number {
-    return this.inscripciones.filter((i) => i.turno === 'Noche').length;
+    return this.inscripciones.filter(i => i.turno === 'Noche').length;
   }
 
   registrar(form: NgForm): void {
     this.mensajeExito = '';
+    this.mensajeError = '';
 
     if (form.invalid) {
-      Object.values(form.controls).forEach((c) => c.markAsTouched());
+      // Marca todos los controles como touched para que se muestren todas las alertas
+      form.form.markAllAsTouched();
+      this.mensajeError = 'Revisa los campos marcados en rojo antes de registrar la inscripción.';
       return;
     }
 
+    const codigo = this.modelo.codigo.trim();
+    const duplicada = this.inscripciones.some(
+      i => i.codigo === codigo && i.curso === this.modelo.curso
+    );
+    if (duplicada) {
+      this.mensajeError = `El estudiante ${codigo} ya está inscrito en "${this.modelo.curso}".`;
+      return;
+    }
+
+    this.contador++;
     this.inscripciones.push({
-      numero: this.siguienteNumero++,
-      nombre: this.inscripcion.nombre.trim(),
-      correo: this.inscripcion.correo.trim().toLowerCase(),
-      especialidad: this.inscripcion.especialidad,
-      turno: this.inscripcion.turno,
-      modalidad: this.inscripcion.modalidad,
-      nivel: this.inscripcion.nivel,
+      numero: this.contador,
+      nombre: this.modelo.nombre.trim(),
+      codigo,
+      email: this.modelo.email.trim().toLowerCase(),
+      semestre: Number(this.modelo.semestre),
+      curso: this.modelo.curso,
+      turno: this.modelo.turno as Turno
     });
 
-    this.mensajeExito = 'Inscripción registrada correctamente.';
-    this.limpiar(form);
-  }
-
-  limpiar(form: NgForm): void {
-    form.resetForm({
-      nombre: '',
-      correo: '',
-      especialidad: '',
-      turno: '',
-      modalidad: '',
-      nivel: '',
-    });
+    this.mensajeExito = `¡Inscripción #${this.contador} registrada exitosamente!`;
+    this.limpiar(form, true);
   }
 
   eliminar(numero: number): void {
-    this.inscripciones = this.inscripciones.filter((i) => i.numero !== numero);
+    this.inscripciones = this.inscripciones.filter(i => i.numero !== numero);
+    this.mensajeExito = '';
+    this.mensajeError = '';
   }
 
-  claseEspecialidad(especialidad: string): string {
-    switch (especialidad) {
-      case 'Desarrollo':
-        return 'esp-desarrollo';
-      case 'Redes':
-        return 'esp-redes';
-      default:
-        return 'esp-ia';
+  limpiar(form: NgForm, conservarMensaje = false): void {
+    this.modelo = this.nuevoModelo();
+    form.resetForm(this.modelo);
+    if (!conservarMensaje) {
+      this.mensajeExito = '';
+      this.mensajeError = '';
     }
-  }
-
-  trackByNumero(_: number, i: Inscripcion): number {
-    return i.numero;
   }
 }

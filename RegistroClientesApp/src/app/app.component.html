@@ -1,204 +1,188 @@
-<main class="contenedor">
-  <header class="encabezado">
-    <h1>{{ titulo }}</h1>
-    <p>Registra participantes, elige sus preferencias y administra las inscripciones.</p>
+<div class="contenedor">
+
+  <header class="cabecera">
+    <div>
+      <h1>{{ autor }}</h1>
+      <p>{{ titulo }}</p>
+    </div>
+    <span class="icono" aria-hidden="true">&lt;/&gt;</span>
   </header>
 
-  <!-- Formulario -->
-  <section class="tarjeta">
-    <h2>Nueva inscripción</h2>
+  <section class="hero">
+    <div class="hero-texto">
+      <h2>¡Inscríbete en tu curso!</h2>
+      <p>Completa el formulario en pocos pasos y confirma tu inscripción al instante.</p>
+    </div>
 
-    <form #inscripcionForm="ngForm" (ngSubmit)="registrar(inscripcionForm)" novalidate>
+    <div class="pasos">
+      <div class="paso">
+        <span class="paso-num">1</span>
+        <span class="paso-txt">Ingresa tus datos</span>
+      </div>
+      <div class="paso">
+        <span class="paso-num">2</span>
+        <span class="paso-txt">Elige curso y turno</span>
+      </div>
+      <div class="paso">
+        <span class="paso-num">3</span>
+        <span class="paso-txt">Confirma tu inscripción</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Formulario de Inscripción</h2>
+
+    <div class="alerta exito" *ngIf="mensajeExito" role="status">{{ mensajeExito }}</div>
+    <div class="alerta error" *ngIf="mensajeError" role="alert">{{ mensajeError }}</div>
+
+    <form #f="ngForm" (ngSubmit)="registrar(f)" novalidate>
       <div class="grid">
+
         <!-- Nombre -->
         <div class="campo">
           <label for="nombre">Nombre completo</label>
-          <input
-            id="nombre"
-            name="nombre"
-            type="text"
-            placeholder="Ej: María Pérez"
-            [(ngModel)]="inscripcion.nombre"
-            #nombre="ngModel"
-            required
-            minlength="3"
-            [class.invalido]="nombre.invalid && (nombre.dirty || nombre.touched)"
-            [class.valido]="nombre.valid && nombre.touched"
-          />
-          <div class="error" *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)">
-            <span *ngIf="nombre.errors?.['required']">El nombre es obligatorio.</span>
-            <span *ngIf="nombre.errors?.['minlength']">Debe tener al menos 3 caracteres.</span>
-          </div>
+          <input id="nombre" name="nombre" type="text" placeholder="Ej: María Pérez"
+                 [(ngModel)]="modelo.nombre" #nombre="ngModel"
+                 required minlength="3" maxlength="60"
+                 [class.invalido]="nombre.invalid && nombre.touched">
+          <small class="msg" *ngIf="nombre.invalid && nombre.touched">
+            <ng-container *ngIf="nombre.errors?.['required']">El nombre es obligatorio.</ng-container>
+            <ng-container *ngIf="nombre.errors?.['minlength']">Debe tener al menos 3 caracteres.</ng-container>
+          </small>
         </div>
 
-        <!-- Correo institucional -->
+        <!-- Código estudiante -->
         <div class="campo">
-          <label for="correo">Correo institucional</label>
-          <input
-            id="correo"
-            name="correo"
-            type="email"
-            placeholder="usuario@instituto.edu.pe"
-            [(ngModel)]="inscripcion.correo"
-            #correo="ngModel"
-            required
-            email
-            pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
-            [class.invalido]="correo.invalid && (correo.dirty || correo.touched)"
-            [class.valido]="correo.valid && correo.touched"
-          />
-          <div class="error" *ngIf="correo.invalid && (correo.dirty || correo.touched)">
-            <span *ngIf="correo.errors?.['required']">El correo es obligatorio.</span>
-            <span *ngIf="!correo.errors?.['required']">Ingresa un correo con formato válido.</span>
-          </div>
+          <label for="codigo">Código de estudiante</label>
+          <input id="codigo" name="codigo" type="text" placeholder="EST-123456"
+                 [(ngModel)]="modelo.codigo" #codigo="ngModel"
+                 required [pattern]="patronCodigo" maxlength="10"
+                 [class.invalido]="codigo.invalid && codigo.touched">
+          <small class="ayuda" *ngIf="!(codigo.invalid && codigo.touched)">Formato: EST- seguido de 6 dígitos.</small>
+          <small class="msg" *ngIf="codigo.invalid && codigo.touched">
+            <ng-container *ngIf="codigo.errors?.['required']">El código es obligatorio.</ng-container>
+            <ng-container *ngIf="codigo.errors?.['pattern']">
+              Formato de código erróneo. Debe ser EST-XXXXXX (6 dígitos), por ejemplo EST-123456.
+            </ng-container>
+          </small>
         </div>
 
-        <!-- Especialidad -->
+        <!-- Email -->
         <div class="campo">
-          <label for="especialidad">Especialidad</label>
-          <select
-            id="especialidad"
-            name="especialidad"
-            [(ngModel)]="inscripcion.especialidad"
-            #especialidad="ngModel"
-            required
-            [class.invalido]="especialidad.invalid && (especialidad.dirty || especialidad.touched)"
-            [class.valido]="especialidad.valid && especialidad.touched"
-          >
-            <option value="" disabled>Selecciona una especialidad</option>
-            <option *ngFor="let e of especialidades" [value]="e">{{ e }}</option>
+          <label for="email">Correo electrónico</label>
+          <input id="email" name="email" type="email" placeholder="usuario@dominio.com"
+                 [(ngModel)]="modelo.email" #email="ngModel"
+                 required [pattern]="patronEmail"
+                 [class.invalido]="email.invalid && email.touched">
+          <small class="msg" *ngIf="email.invalid && email.touched">
+            <ng-container *ngIf="email.errors?.['required']">El correo es obligatorio.</ng-container>
+            <ng-container *ngIf="!email.errors?.['required'] && (email.errors?.['pattern'] || email.errors?.['email'])">
+              Ingresa un correo con dominio válido (ej: usuario&#64;correo.com).
+            </ng-container>
+          </small>
+        </div>
+
+        <!-- Semestre -->
+        <div class="campo">
+          <label for="semestre">Semestre</label>
+          <input id="semestre" name="semestre" type="number" placeholder="1 a 10"
+                 [(ngModel)]="modelo.semestre" #semestre="ngModel"
+                 required [min]="semestreMin" [max]="semestreMax" step="1"
+                 [pattern]="patronSemestre"
+                 [class.invalido]="semestre.invalid && semestre.touched">
+          <small class="ayuda" *ngIf="!(semestre.invalid && semestre.touched)">Valor numérico entre 1 y 10.</small>
+          <small class="msg" *ngIf="semestre.invalid && semestre.touched">
+            <ng-container *ngIf="semestre.errors?.['required']">El semestre es obligatorio.</ng-container>
+            <ng-container *ngIf="semestre.errors?.['max']">El semestre no puede ser mayor a 10.</ng-container>
+            <ng-container *ngIf="semestre.errors?.['min']">El semestre no puede ser menor a 1.</ng-container>
+            <ng-container *ngIf="semestre.errors?.['pattern'] && !semestre.errors?.['min'] && !semestre.errors?.['max']">
+              Ingresa un número entero válido.
+            </ng-container>
+          </small>
+        </div>
+
+        <!-- Curso -->
+        <div class="campo">
+          <label for="curso">Curso</label>
+          <select id="curso" name="curso" [(ngModel)]="modelo.curso" #curso="ngModel"
+                  required [class.invalido]="curso.invalid && curso.touched">
+            <option value="" disabled>Selecciona un curso</option>
+            <option *ngFor="let c of cursos" [value]="c">{{ c }}</option>
           </select>
-          <div class="error" *ngIf="especialidad.invalid && (especialidad.dirty || especialidad.touched)">
-            <span>Selecciona una especialidad.</span>
-          </div>
+          <small class="msg" *ngIf="curso.invalid && curso.touched">Debes seleccionar un curso.</small>
         </div>
 
-        <!-- Modalidad -->
+        <!-- Turno -->
         <div class="campo">
-          <label for="modalidad">Modalidad</label>
-          <select
-            id="modalidad"
-            name="modalidad"
-            [(ngModel)]="inscripcion.modalidad"
-            #modalidad="ngModel"
-            required
-            [class.invalido]="modalidad.invalid && (modalidad.dirty || modalidad.touched)"
-            [class.valido]="modalidad.valid && modalidad.touched"
-          >
-            <option value="" disabled>Selecciona una modalidad</option>
-            <option *ngFor="let m of modalidades" [value]="m">{{ m }}</option>
+          <label for="turno">Turno</label>
+          <select id="turno" name="turno" [(ngModel)]="modelo.turno" #turno="ngModel"
+                  required [class.invalido]="turno.invalid && turno.touched">
+            <option value="" disabled>Selecciona un turno</option>
+            <option *ngFor="let t of turnos" [value]="t">{{ t }}</option>
           </select>
-          <div class="error" *ngIf="modalidad.invalid && (modalidad.dirty || modalidad.touched)">
-            <span>Selecciona una modalidad.</span>
-          </div>
+          <small class="msg" *ngIf="turno.invalid && turno.touched">Debes seleccionar un turno.</small>
         </div>
 
-        <!-- Nivel de experiencia -->
-        <div class="campo">
-          <label for="nivel">Nivel de experiencia</label>
-          <select
-            id="nivel"
-            name="nivel"
-            [(ngModel)]="inscripcion.nivel"
-            #nivel="ngModel"
-            required
-            [class.invalido]="nivel.invalid && (nivel.dirty || nivel.touched)"
-            [class.valido]="nivel.valid && nivel.touched"
-          >
-            <option value="" disabled>Selecciona un nivel</option>
-            <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
-          </select>
-          <div class="error" *ngIf="nivel.invalid && (nivel.dirty || nivel.touched)">
-            <span>Selecciona un nivel de experiencia.</span>
-          </div>
-        </div>
-
-        <!-- Turno (radio buttons) -->
-        <div class="campo">
-          <span class="etiqueta-grupo">Turno</span>
-          <div class="radios">
-            <label class="radio" *ngFor="let t of turnos">
-              <input
-                type="radio"
-                name="turno"
-                [value]="t"
-                [(ngModel)]="inscripcion.turno"
-                #turno="ngModel"
-                required
-              />
-              <span>{{ t }}</span>
-            </label>
-          </div>
-          <div class="error" *ngIf="inscripcionForm.controls['turno']?.invalid && inscripcionForm.controls['turno']?.touched">
-            <span>Selecciona un turno.</span>
-          </div>
-        </div>
       </div>
 
-      <div class="exito" *ngIf="mensajeExito" role="status">{{ mensajeExito }}</div>
-
       <div class="acciones">
-        <button type="submit" class="btn primario" [disabled]="inscripcionForm.invalid">Inscribir</button>
-        <button type="button" class="btn secundario" (click)="limpiar(inscripcionForm)">Limpiar</button>
+        <button type="submit" class="btn primario">Registrar inscripción</button>
+        <button type="button" class="btn secundario" (click)="limpiar(f)">Limpiar formulario</button>
       </div>
     </form>
   </section>
 
-  <!-- Resumen -->
-  <section class="resumen">
-    <div class="indicador total">
-      <span class="valor">{{ totalInscritos }}</span>
-      <span class="texto">Total de inscritos</span>
+  <section class="indicadores">
+    <div class="indicador">
+      <span class="numero">{{ total }}</span>
+      <span class="etiqueta">Total de inscritos</span>
     </div>
-    <div class="indicador manana">
-      <span class="valor">{{ totalManana }}</span>
-      <span class="texto">Turno mañana</span>
+    <div class="indicador">
+      <span class="numero">{{ totalManana }}</span>
+      <span class="etiqueta">Turno mañana</span>
     </div>
-    <div class="indicador noche">
-      <span class="valor">{{ totalNoche }}</span>
-      <span class="texto">Turno noche</span>
+    <div class="indicador">
+      <span class="numero">{{ totalNoche }}</span>
+      <span class="etiqueta">Turno noche</span>
     </div>
   </section>
 
-  <!-- Tabla -->
   <section class="tarjeta">
     <h2>Inscripciones registradas</h2>
 
-    <p class="vacio" *ngIf="inscripciones.length === 0">Todavía no hay participantes registrados.</p>
+    <p class="vacio" *ngIf="inscripciones.length === 0">
+      No hay inscripciones registradas todavía.
+    </p>
 
-    <div class="tabla-wrapper" *ngIf="inscripciones.length > 0">
+    <div class="tabla-wrap" *ngIf="inscripciones.length > 0">
       <table>
         <thead>
           <tr>
-            <th>N.° inscripción</th>
+            <th>N°</th>
             <th>Nombre</th>
-            <th>Correo</th>
-            <th>Especialidad</th>
+            <th>Código</th>
+            <th>Email</th>
+            <th>Semestre</th>
+            <th>Curso</th>
             <th>Turno</th>
-            <th>Modalidad</th>
-            <th>Nivel</th>
-            <th></th>
+            <th>Acción</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let i of inscripciones; trackBy: trackByNumero">
-            <td class="numero">{{ i.numero }}</td>
+          <tr *ngFor="let i of inscripciones">
+            <td>{{ i.numero }}</td>
             <td>{{ i.nombre }}</td>
-            <td>{{ i.correo }}</td>
-            <td>
-              <span class="etiqueta" [ngClass]="claseEspecialidad(i.especialidad)">{{ i.especialidad }}</span>
-            </td>
-            <td>
-              <span class="etiqueta" [ngClass]="i.turno === 'Mañana' ? 'turno-manana' : 'turno-noche'">{{ i.turno }}</span>
-            </td>
-            <td>{{ i.modalidad }}</td>
-            <td>{{ i.nivel }}</td>
-            <td>
-              <button type="button" class="btn-eliminar" (click)="eliminar(i.numero)" aria-label="Eliminar inscripción">✕</button>
-            </td>
+            <td>{{ i.codigo }}</td>
+            <td>{{ i.email }}</td>
+            <td>{{ i.semestre }}</td>
+            <td>{{ i.curso }}</td>
+            <td><span class="etiqueta-turno" [class.noche]="i.turno === 'Noche'">{{ i.turno }}</span></td>
+            <td><button type="button" class="btn peligro" (click)="eliminar(i.numero)">Eliminar</button></td>
           </tr>
         </tbody>
       </table>
     </div>
   </section>
-</main>
+
+</div>

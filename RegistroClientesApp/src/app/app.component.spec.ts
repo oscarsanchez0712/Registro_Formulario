@@ -1,48 +1,41 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  let fixture: ComponentFixture<AppComponent>;
-  let component: AppComponent;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AppComponent],
       imports: [FormsModule],
+      declarations: [AppComponent],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('debería crear la app', () => {
-    expect(component).toBeTruthy();
+  it('debería crear la aplicación', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('debería mostrar el mensaje cuando no hay inscripciones', () => {
-    const texto = fixture.nativeElement.textContent;
-    expect(texto).toContain('Todavía no hay participantes registrados.');
+  it('el patrón de código acepta EST-123456 y rechaza otros formatos', () => {
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+    const re = new RegExp(app.patronCodigo);
+    expect(re.test('EST-123456')).toBeTrue();
+    expect(re.test('EST-12345')).toBeFalse();
+    expect(re.test('est-123456')).toBeFalse();
+    expect(re.test('123456')).toBeFalse();
   });
 
-  it('debería calcular los indicadores por turno', () => {
-    component.inscripciones = [
-      { numero: 1, nombre: 'Ana', correo: 'ana@correo.com', especialidad: 'Redes', turno: 'Mañana', modalidad: 'Virtual', nivel: 'Avanzado' },
-      { numero: 2, nombre: 'Luis', correo: 'luis@correo.com', especialidad: 'Desarrollo', turno: 'Noche', modalidad: 'Presencial', nivel: 'Principiante' },
-      { numero: 3, nombre: 'Eva', correo: 'eva@correo.com', especialidad: 'Inteligencia Artificial', turno: 'Noche', modalidad: 'Virtual', nivel: 'Intermedio' },
-    ];
-    expect(component.totalInscritos).toBe(3);
-    expect(component.totalManana).toBe(1);
-    expect(component.totalNoche).toBe(2);
+  it('el patrón de email exige dominio válido', () => {
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+    const re = new RegExp(app.patronEmail);
+    expect(re.test('ana@correo.com')).toBeTrue();
+    expect(re.test('ana@correo')).toBeFalse();
+    expect(re.test('ana@.com')).toBeFalse();
   });
 
-  it('debería eliminar una inscripción por número', () => {
-    component.inscripciones = [
-      { numero: 1, nombre: 'Ana', correo: 'ana@correo.com', especialidad: 'Redes', turno: 'Mañana', modalidad: 'Virtual', nivel: 'Avanzado' },
-    ];
-    component.eliminar(1);
-    expect(component.inscripciones.length).toBe(0);
+  it('inicia con la lista vacía y sin indicadores', () => {
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+    expect(app.total).toBe(0);
+    expect(app.totalManana).toBe(0);
+    expect(app.totalNoche).toBe(0);
   });
 });
